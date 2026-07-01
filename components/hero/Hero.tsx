@@ -1,4 +1,4 @@
-import { FEATURES } from "@/app/utils/constant";
+import { FEATURES } from "@/utils/constant";
 import { ArrowRight, Heart } from "lucide-react";
 import Link from "next/link";
 

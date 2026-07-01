@@ -258,3 +258,19 @@
     letter-spacing: var(--tracking-normal);
   }
 }
+
+@keyframes settle-left {
+  from { transform: translate(-40px, -20px) rotate(-16deg); opacity: 0; }
+  to { transform: translate(0, 0) rotate(-8deg); opacity: 1; }
+}
+@keyframes settle-right {
+  from { transform: translate(40px, -20px) rotate(16deg); opacity: 0; }
+  to { transform: translate(0, 0) rotate(8deg); opacity: 1; }
+}
+@keyframes pop-in {
+  from { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+  to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; }
+}

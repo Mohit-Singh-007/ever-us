@@ -1,4 +1,4 @@
-import { FEATURES } from "@/app/utils/constant";
+import { FEATURES } from "@/utils/constant";
 
 export default function Features() {
   return (
