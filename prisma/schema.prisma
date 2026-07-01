@@ -1,4 +1,3 @@
-
 generator client {
   provider = "prisma-client-js"
   output   = "../generated/prisma"
@@ -23,6 +22,28 @@ model User {
   updatedAt     DateTime  @updatedAt
   sessions      Session[]
   accounts      Account[]
+
+  // ---- Couple Space profile fields ----
+  nickname           String?
+  bio                String?
+  birthday           DateTime?
+  relationshipStatus String?
+  favoriteMovie      String?
+  favoriteFood       String?
+  loveLanguage       String?
+  interests          String[]  @default([])
+
+  // ---- relations to app models ----
+  couplesAsPartnerOne Couple[]         @relation("PartnerOne")
+  couplesAsPartnerTwo Couple[]         @relation("PartnerTwo")
+  sentInvitations     Invitation[]     @relation("InvitationSender")
+  memoriesUploaded    Memory[]         @relation("MemoryUploadedBy")
+  journalEntries      Journal[]        @relation("JournalAuthor")
+  journalComments     JournalComment[]
+  bucketItemsCreated  BucketItem[]     @relation("BucketItemCreatedBy")
+  notifications       Notification[]
+  dailyAnswers        DailyAnswer[]
+  savedDateIdeas      SavedDateIdea[]
 
   @@unique([email])
   @@map("user")
@@ -74,4 +95,245 @@ model Verification {
 
   @@index([identifier])
   @@map("verification")
+}
+
+model Couple {
+  id              String    @id @default(cuid())
+  partnerOneId    String
+  partnerTwoId    String
+  anniversaryDate DateTime?
+  createdAt       DateTime  @default(now())
+
+  partnerOne User @relation("PartnerOne", fields: [partnerOneId], references: [id], onDelete: Cascade)
+  partnerTwo User @relation("PartnerTwo", fields: [partnerTwoId], references: [id], onDelete: Cascade)
+
+  invitations    Invitation[]
+  memories       Memory[]
+  journals       Journal[]
+  bucketItems    BucketItem[]
+  dailyAnswers   DailyAnswer[]
+  savedDateIdeas SavedDateIdea[]
+
+  @@unique([partnerOneId, partnerTwoId])
+  @@index([partnerOneId])
+  @@index([partnerTwoId])
+  @@map("couple")
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  REVOKED
+}
+
+model Invitation {
+  id         String           @id @default(cuid())
+  code       String           @unique
+  senderId   String
+  status     InvitationStatus @default(PENDING)
+  coupleId   String?
+  createdAt  DateTime         @default(now())
+  expiresAt  DateTime
+  acceptedAt DateTime?
+
+  sender User    @relation("InvitationSender", fields: [senderId], references: [id], onDelete: Cascade)
+  couple Couple? @relation(fields: [coupleId], references: [id])
+
+  @@index([senderId])
+  @@index([status])
+  @@map("invitation")
+}
+
+model Memory {
+  id           String   @id @default(cuid())
+  coupleId     String
+  uploadedById String
+  imageUrl     String
+  caption      String?
+  location     String?
+  date         DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  couple     Couple @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  uploadedBy User   @relation("MemoryUploadedBy", fields: [uploadedById], references: [id])
+
+  @@index([coupleId, date])
+  @@map("memory")
+}
+
+enum Mood {
+  HAPPY
+  SAD
+  EXCITED
+  GRATEFUL
+  ANXIOUS
+  CALM
+  FRUSTRATED
+  LOVED
+}
+
+model Journal {
+  id        String   @id @default(cuid())
+  coupleId  String
+  authorId  String
+  title     String?
+  content   String // rich text stored as HTML/JSON string
+  imageUrl  String?
+  mood      Mood?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  couple    Couple            @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  author    User              @relation("JournalAuthor", fields: [authorId], references: [id])
+  comments  JournalComment[]
+  reactions JournalReaction[]
+
+  @@index([coupleId, createdAt])
+  @@map("journal")
+}
+
+model JournalComment {
+  id        String   @id @default(cuid())
+  journalId String
+  authorId  String
+  content   String
+  createdAt DateTime @default(now())
+
+  journal Journal @relation(fields: [journalId], references: [id], onDelete: Cascade)
+  author  User    @relation(fields: [authorId], references: [id])
+
+  @@index([journalId])
+  @@map("journal_comment")
+}
+
+model JournalReaction {
+  id        String   @id @default(cuid())
+  journalId String
+  userId    String
+  emoji     String
+  createdAt DateTime @default(now())
+
+  journal Journal @relation(fields: [journalId], references: [id], onDelete: Cascade)
+
+  @@unique([journalId, userId, emoji])
+  @@map("journal_reaction")
+}
+
+enum BucketCategory {
+  TRAVEL
+  FOOD
+  ADVENTURE
+  MOVIES
+  DREAMS
+}
+
+model BucketItem {
+  id          String         @id @default(cuid())
+  coupleId    String
+  createdById String
+  title       String
+  description String?
+  category    BucketCategory
+  completed   Boolean        @default(false)
+  completedAt DateTime?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  couple    Couple @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  createdBy User   @relation("BucketItemCreatedBy", fields: [createdById], references: [id])
+
+  @@index([coupleId, category])
+  @@map("bucket_item")
+}
+
+enum NotificationType {
+  PARTNER_JOINED
+  NEW_JOURNAL
+  MEMORY_UPLOADED
+  BUCKET_COMPLETED
+  ANNIVERSARY_REMINDER
+  DAILY_QUESTION
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  title     String
+  body      String?
+  link      String?
+  read      Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, read])
+  @@map("notification")
+}
+
+model DailyQuestion {
+  id     String   @id @default(cuid())
+  prompt String
+  date   DateTime @unique
+
+  answers DailyAnswer[]
+
+  @@map("daily_question")
+}
+
+model DailyAnswer {
+  id              String   @id @default(cuid())
+  dailyQuestionId String
+  coupleId        String
+  userId          String
+  answer          String
+  createdAt       DateTime @default(now())
+
+  dailyQuestion DailyQuestion @relation(fields: [dailyQuestionId], references: [id], onDelete: Cascade)
+  couple        Couple        @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([dailyQuestionId, userId])
+  @@index([coupleId, createdAt])
+  @@map("daily_answer")
+}
+
+enum DateCategory {
+  INDOOR
+  OUTDOOR
+  LONG_DISTANCE
+  LOW_BUDGET
+  LUXURY
+  ADVENTURE
+  FOOD
+  MOVIE_NIGHT
+}
+
+model DateIdea {
+  id          String       @id @default(cuid())
+  title       String
+  description String?
+  category    DateCategory
+  createdAt   DateTime     @default(now())
+
+  savedBy SavedDateIdea[]
+
+  @@map("date_idea")
+}
+
+model SavedDateIdea {
+  id         String   @id @default(cuid())
+  dateIdeaId String
+  coupleId   String
+  savedById  String
+  createdAt  DateTime @default(now())
+
+  dateIdea DateIdea @relation(fields: [dateIdeaId], references: [id], onDelete: Cascade)
+  couple   Couple   @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  savedBy  User     @relation(fields: [savedById], references: [id], onDelete: Cascade)
+
+  @@unique([dateIdeaId, coupleId])
+  @@map("saved_date_idea")
 }

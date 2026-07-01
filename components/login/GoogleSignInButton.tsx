@@ -1,16 +1,20 @@
 "use client";
 
 import { useTransition } from "react";
-import { authClient } from "@/lib/auth-client";
+import { useSearchParams } from "next/navigation";
+import { authClient } from "@/lib/auth-client"; // adjust to wherever you called createAuthClient()
+
 export function GoogleSignInButton() {
   const [isPending, startTransition] = useTransition();
+  const searchParams = useSearchParams();
+  const next = searchParams.get("next") ?? "/dashboard";
 
   function handleSignIn() {
     startTransition(async () => {
       await authClient.signIn.social({
         provider: "google",
-        callbackURL: "/dashboard",
-        errorCallbackURL: "/login?error=google",
+        callbackURL: next,
+        errorCallbackURL: `/login?error=google${next !== "/dashboard" ? `&next=${encodeURIComponent(next)}` : ""}`,
       });
     });
   }

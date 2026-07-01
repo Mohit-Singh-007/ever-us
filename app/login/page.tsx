@@ -1,14 +1,20 @@
 import { GoogleSignInButton } from "@/components/login/GoogleSignInButton";
+import { auth } from "@/lib/auth";
 import { Heart } from "lucide-react";
 import { Metadata } from "next";
+import { headers } from "next/headers";
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { Suspense } from "react";
 
 export const metadata: Metadata = {
   title: "Sign in — Couple Space",
   description: "Continue with Google to enter your space.",
 };
 
-export default function page() {
+export default async function LoginPage() {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (session) redirect("/dashboard");
   return (
     <div
       className={` font-body relative flex min-h-svh items-center justify-center overflow-hidden bg-[#FBF3EF] px-6 text-[#2B2320]`}
@@ -69,7 +75,9 @@ export default function page() {
           </p>
         </div>
 
-        <GoogleSignInButton />
+        <Suspense fallback={<ButtonSkeleton />}>
+          <GoogleSignInButton />
+        </Suspense>
 
         <p className="mt-8 text-center text-xs leading-relaxed text-[#2B2320]/40">
           No passwords, no separate accounts to remember —
@@ -78,5 +86,11 @@ export default function page() {
         </p>
       </div>
     </div>
+  );
+}
+
+function ButtonSkeleton() {
+  return (
+    <div className="h-[50px] w-full animate-pulse rounded-full border border-[#2B2320]/10 bg-white" />
   );
 }
