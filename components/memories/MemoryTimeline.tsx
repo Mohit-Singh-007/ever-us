@@ -34,46 +34,62 @@ export function MemoryTimeline({
   }
 
   return (
-    <div className="flex flex-col gap-10">
+    <div className="flex flex-col gap-14">
       {groups.map((group) => (
         <section key={group.label}>
-          <h2 className="font-mono mb-4 text-xs uppercase tracking-[0.2em] text-[#8A9A7E]">
-            {group.label}
-          </h2>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-            {group.items.map((memory, i) => (
+          <div className="mb-5 flex items-center gap-4">
+            <h2 className="font-display text-lg italic text-[#2B2320]/80 md:text-xl">
+              {group.label}
+            </h2>
+            <div className="h-px flex-1 bg-[#2B2320]/10" />
+            <span className="font-mono text-[10px] uppercase tracking-wide text-[#2B2320]/35">
+              {group.items.length}{" "}
+              {group.items.length === 1 ? "photo" : "photos"}
+            </span>
+          </div>
+
+          {/* CSS-columns masonry: each photo keeps its natural aspect ratio,
+              columns reflow automatically, and nothing can overlap or hide
+              behind another tile — unlike a manually spanned CSS grid. */}
+          <div className="columns-2 gap-3 sm:columns-3 md:columns-4">
+            {group.items.map((memory) => (
               <button
                 key={memory.id}
                 type="button"
                 onClick={() => setActiveMemory(memory)}
-                className="group relative aspect-square overflow-hidden rounded-2xl bg-[#2B2320]/5 text-left"
-                style={{
-                  // slight organic size variation on every 5th tile for visual rhythm
-                  gridRowEnd: i % 5 === 0 ? "span 2" : undefined,
-                  gridColumnEnd: i % 5 === 0 ? "span 2" : undefined,
-                }}
+                className="group relative mb-3 block w-full overflow-hidden rounded-2xl bg-[#2B2320]/5 text-left shadow-sm ring-1 ring-[#2B2320]/5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg break-inside-avoid"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={memory.imageUrl}
                   alt={memory.caption ?? ""}
-                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  loading="lazy"
+                  className="block h-auto w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                 />
-                <div className="absolute inset-0 flex flex-col justify-end bg-linear-to-t from-[#2B2320]/70 via-transparent to-transparent p-3 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                  {memory.caption && (
-                    <p className="line-clamp-2 text-xs text-white">
-                      {memory.caption}
-                    </p>
-                  )}
-                  <div className="mt-1 flex items-center gap-2 text-[10px] text-white/70">
-                    <span>{format(memory.date, "MMM d")}</span>
+
+                {/* always-visible date chip, top-left */}
+                <div className="absolute left-2 top-2 rounded-full bg-[#2B2320]/55 px-2 py-1 backdrop-blur-sm">
+                  <span className="text-[10px] font-medium text-white">
+                    {format(memory.date, "MMM d")}
+                  </span>
+                </div>
+
+                {/* caption/location reveal on hover */}
+                {(memory.caption || memory.location) && (
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#2B2320]/85 via-[#2B2320]/30 to-transparent p-3 pt-8 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                    {memory.caption && (
+                      <p className="line-clamp-2 text-xs leading-snug text-white">
+                        {memory.caption}
+                      </p>
+                    )}
                     {memory.location && (
-                      <span className="flex items-center gap-0.5">
-                        <MapPin className="h-2.5 w-2.5" /> {memory.location}
-                      </span>
+                      <p className="mt-1 flex items-center gap-1 text-[10px] text-white/75">
+                        <MapPin className="h-2.5 w-2.5 shrink-0" />{" "}
+                        {memory.location}
+                      </p>
                     )}
                   </div>
-                </div>
+                )}
               </button>
             ))}
           </div>

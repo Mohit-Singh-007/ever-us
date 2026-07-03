@@ -7,7 +7,7 @@ import { MapPin, Trash2, Pencil, Check, X } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+
 import { updateMemory, deleteMemory } from "@/lib/actions/memory";
 
 type Memory = {
