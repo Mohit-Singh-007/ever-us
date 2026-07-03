@@ -7,8 +7,8 @@ import { MapPin, Trash2, Pencil, Check, X } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-
 import { updateMemory, deleteMemory } from "@/lib/actions/memory";
+import { cldFull } from "@/lib/cloudinary-transform";
 
 type Memory = {
   id: string;
@@ -19,7 +19,7 @@ type Memory = {
   uploadedBy: { name: string };
 };
 
-export function MemoryLightbox({
+export function MemoryLightBox({
   memory,
   currentUserName,
   open,
@@ -62,7 +62,7 @@ export function MemoryLightbox({
       <DialogContent className="max-h-[90vh] overflow-y-auto p-0 sm:max-w-lg">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={memory.imageUrl}
+          src={cldFull(memory.imageUrl)}
           alt={memory.caption ?? ""}
           className="max-h-[50vh] w-full object-cover"
         />

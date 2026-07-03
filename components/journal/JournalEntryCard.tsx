@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useOptimistic } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { MessageCircle, Trash2 } from "lucide-react";
@@ -12,9 +12,12 @@ import {
   toggleJournalReaction,
 } from "@/lib/actions/journal";
 
+import { cldAvatar, cldCard } from "@/lib/cloudinary-transform";
 import { cn } from "@/lib/utils";
 import { MOOD_EMOJI, REACTION_EMOJIS } from "@/zod/journal-schema";
 import { sanitizeJournalHtml } from "@/lib/sanitize-html";
+
+type Reaction = { id: string; emoji: string; userId: string };
 
 type Entry = {
   id: string;
@@ -31,7 +34,7 @@ type Entry = {
     authorId: string;
     author: { name: string };
   }[];
-  reactions: { id: string; emoji: string; userId: string }[];
+  reactions: Reaction[];
 };
 
 export function JournalEntryCard({
@@ -48,16 +51,29 @@ export function JournalEntryCard({
 
   const isAuthor = entry.author.id === currentUserId;
 
-  const reactionCounts = REACTION_EMOJIS.map((emoji) => ({
-    emoji,
-    count: entry.reactions.filter((r) => r.emoji === emoji).length,
-    reactedByMe: entry.reactions.some(
-      (r) => r.emoji === emoji && r.userId === currentUserId,
-    ),
-  })).filter((r) => r.count > 0 || true); // show all, count 0 still clickable
+  const [optimisticReactions, applyOptimisticReaction] = useOptimistic(
+    entry.reactions,
+    (state: Reaction[], emoji: string) => {
+      const existing = state.find(
+        (r) => r.emoji === emoji && r.userId === currentUserId,
+      );
+      if (existing) {
+        return state.filter((r) => r.id !== existing.id);
+      }
+      return [
+        ...state,
+        {
+          id: `optimistic-${emoji}-${currentUserId}`,
+          emoji,
+          userId: currentUserId,
+        },
+      ];
+    },
+  );
 
   function handleReact(emoji: string) {
     startTransition(async () => {
+      applyOptimisticReaction(emoji);
       await toggleJournalReaction(entry.id, emoji);
       router.refresh();
     });
@@ -95,7 +111,7 @@ export function JournalEntryCard({
             {entry.author.image ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={entry.author.image}
+                src={cldAvatar(entry.author.image)}
                 alt=""
                 className="h-full w-full object-cover"
               />
@@ -146,7 +162,7 @@ export function JournalEntryCard({
       {entry.imageUrl && (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={entry.imageUrl}
+          src={cldCard(entry.imageUrl)}
           alt=""
           className="mb-4 max-h-72 w-full rounded-xl object-cover"
         />
@@ -154,8 +170,10 @@ export function JournalEntryCard({
 
       <div className="flex flex-wrap items-center gap-1.5 border-t border-[#2B2320]/8 pt-3">
         {REACTION_EMOJIS.map((emoji) => {
-          const count = entry.reactions.filter((r) => r.emoji === emoji).length;
-          const reactedByMe = entry.reactions.some(
+          const count = optimisticReactions.filter(
+            (r) => r.emoji === emoji,
+          ).length;
+          const reactedByMe = optimisticReactions.some(
             (r) => r.emoji === emoji && r.userId === currentUserId,
           );
           return (

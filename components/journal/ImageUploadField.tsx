@@ -2,6 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { ImagePlus, X, Loader2 } from "lucide-react";
+import { cldCard } from "@/lib/cloudinary-transform";
+import { validateUploadFile } from "@/lib/upload-limit";
 
 export function ImageUploadField({
   value,
@@ -19,6 +21,13 @@ export function ImageUploadField({
     const file = e.target.files?.[0];
     if (!file) return;
     setError(null);
+
+    const validationError = validateUploadFile(file);
+    if (validationError) {
+      setError(validationError);
+      e.target.value = "";
+      return;
+    }
 
     startTransition(async () => {
       try {
@@ -51,7 +60,11 @@ export function ImageUploadField({
     return (
       <div className="relative overflow-hidden rounded-xl">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={value} alt="" className="max-h-56 w-full object-cover" />
+        <img
+          src={cldCard(value)}
+          alt=""
+          className="max-h-56 w-full object-cover"
+        />
         <button
           type="button"
           onClick={() => onChange("")}
@@ -72,7 +85,7 @@ export function ImageUploadField({
         <ImagePlus className="h-5 w-5" strokeWidth={1.75} />
       )}
       <span className="text-xs">
-        {isPending ? "Uploading…" : "Add a photo (optional)"}
+        {isPending ? "Uploading…" : "Add a photo (optional, up to 10MB)"}
       </span>
       <input
         type="file"

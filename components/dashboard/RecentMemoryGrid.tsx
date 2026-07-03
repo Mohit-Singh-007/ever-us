@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MemoryLightbox } from "@/components/memories/MemoryLightBox";
+import { MemoryLightBox } from "../memories/MemoryLightBox";
 
 type Memory = {
   id: string;
@@ -51,7 +51,7 @@ export function RecentMemoriesGrid({
       </div>
 
       {activeMemory && (
-        <MemoryLightbox
+        <MemoryLightBox
           memory={activeMemory}
           currentUserName={currentUserName}
           open={Boolean(activeMemory)}

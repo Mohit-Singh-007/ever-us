@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -25,8 +26,22 @@ import {
 
 import { createJournalEntry } from "@/lib/actions/journal";
 import { MOOD_EMOJI, MOOD_LABELS, MOODS } from "@/zod/journal-schema";
-import { RichTextEditor } from "./RichTextEditor";
 import { ImageUploadField } from "./ImageUploadField";
+
+// Tiptap (+ its extensions) is a meaningfully heavy client bundle. It's only
+// ever needed once this dialog is actually opened, so loading it eagerly on
+// every /journal page visit — even for people just reading entries — wastes
+// bandwidth. next/dynamic defers it to first render of this component, with
+// ssr:false since Tiptap needs the DOM.
+const RichTextEditor = dynamic(
+  () => import("./RichTextEditor").then((mod) => mod.RichTextEditor),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-[188px] animate-pulse rounded-xl border border-[#2B2320]/10 bg-white/60" />
+    ),
+  },
+);
 
 export function NewJournalEntryDialog() {
   const router = useRouter();

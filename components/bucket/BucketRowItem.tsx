@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { useTransition, useOptimistic } from "react";
 import { useRouter } from "next/navigation";
 import { Trash2 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -20,9 +20,13 @@ export function BucketRowItem({
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [optimisticCompleted, setOptimisticCompleted] = useOptimistic(
+    item.completed,
+  );
 
   function handleToggle() {
     startTransition(async () => {
+      setOptimisticCompleted(!optimisticCompleted);
       await toggleBucketItem(item.id);
       router.refresh();
     });
@@ -39,11 +43,11 @@ export function BucketRowItem({
     <div
       className={cn(
         "group flex items-start gap-3 rounded-xl border border-[#2B2320]/8 bg-white/60 p-4 transition-opacity",
-        isPending && "opacity-50",
+        isPending && "opacity-70",
       )}
     >
       <Checkbox
-        checked={item.completed}
+        checked={optimisticCompleted}
         onCheckedChange={handleToggle}
         disabled={isPending}
         className="mt-0.5"
@@ -52,7 +56,7 @@ export function BucketRowItem({
         <p
           className={cn(
             "text-sm text-[#2B2320]",
-            item.completed && "text-[#2B2320]/40 line-through",
+            optimisticCompleted && "text-[#2B2320]/40 line-through",
           )}
         >
           {item.title}

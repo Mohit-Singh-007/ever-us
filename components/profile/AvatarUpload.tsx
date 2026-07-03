@@ -2,6 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { Camera, Loader2 } from "lucide-react";
+import { cldAvatar } from "@/lib/cloudinary-transform";
+import { validateUploadFile } from "@/lib/upload-limit";
 
 /**
  * Uses Cloudinary's unsigned upload endpoint — requires an "unsigned"
@@ -30,6 +32,14 @@ export function AvatarUpload({
     if (!file) return;
 
     setError(null);
+
+    const validationError = validateUploadFile(file);
+    if (validationError) {
+      setError(validationError);
+      e.target.value = ""; // allow re-selecting the same file after fixing it
+      return;
+    }
+
     const localPreview = URL.createObjectURL(file);
     setPreview(localPreview);
 
@@ -68,7 +78,11 @@ export function AvatarUpload({
       <label className="group relative flex h-24 w-24 cursor-pointer items-center justify-center overflow-hidden rounded-full bg-[#E7B7A4]">
         {preview ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={preview} alt="" className="h-full w-full object-cover" />
+          <img
+            src={cldAvatar(preview)}
+            alt=""
+            className="h-full w-full object-cover"
+          />
         ) : (
           <span className="font-display text-2xl text-[#2B2320]/60">
             {name.charAt(0).toUpperCase()}

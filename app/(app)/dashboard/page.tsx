@@ -1,13 +1,12 @@
 import Link from "next/link";
-import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
-import { getCoupleForUser } from "@/lib/actions/couple";
-import { getDashboardData } from "@/lib/actions/dashboard"; // implement: returns stats/memories/question for a couple
+import { getSession } from "@/lib/data/session";
+import { getCoupleForUser } from "@/lib/data/couple";
+import { getDashboardData } from "@/lib/actions/dashboard";
 import { ArrowRight, Heart, Image as ImageIcon } from "lucide-react";
 import { RecentMemoriesGrid } from "@/components/dashboard/RecentMemoryGrid";
 
 export default async function DashboardHomePage() {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getSession();
   const couple = await getCoupleForUser(session!.user.id);
 
   if (!couple) {

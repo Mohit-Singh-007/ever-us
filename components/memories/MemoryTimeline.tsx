@@ -3,8 +3,10 @@
 import { useState } from "react";
 import { format, isSameMonth } from "date-fns";
 import { MapPin } from "lucide-react";
-import { MemoryLightbox } from "@/components/memories/MemoryLightBox";
+
+import { cldThumb } from "@/lib/cloudinary-transform";
 import { cn } from "@/lib/utils";
+import { MemoryLightBox } from "./MemoryLightBox";
 
 type Memory = {
   id: string;
@@ -87,10 +89,10 @@ export function MemoryTimeline({
                         !isLeft && "sm:flex-row-reverse",
                       )}
                     >
-                      <div className="relative aspect-[4/3] w-full overflow-hidden sm:aspect-square sm:w-36 sm:shrink-0">
+                      <div className="relative aspect-4/3 w-full overflow-hidden sm:aspect-square sm:w-36 sm:shrink-0">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
-                          src={memory.imageUrl}
+                          src={cldThumb(memory.imageUrl)}
                           alt={memory.caption ?? ""}
                           loading="lazy"
                           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.05]"
@@ -123,7 +125,7 @@ export function MemoryTimeline({
       </div>
 
       {activeMemory && (
-        <MemoryLightbox
+        <MemoryLightBox
           memory={activeMemory}
           currentUserName={currentUserName}
           open={Boolean(activeMemory)}

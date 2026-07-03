@@ -1,17 +1,16 @@
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { ReactNode } from "react";
 import { PartnerBadge } from "@/components/dashboard/PartnerBadge";
 import { DashboardNav } from "@/components/dashboard/DashboardNav";
 import { getCoupleForUser } from "@/lib/actions/couple";
+import { getSession } from "@/lib/data/session";
 
 export default async function DashboardLayout({
   children,
 }: {
   children: ReactNode;
 }) {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getSession();
 
   if (!session) {
     redirect("/login");
@@ -20,7 +19,7 @@ export default async function DashboardLayout({
   const couple = await getCoupleForUser(session.user.id);
 
   return (
-    <div className={` font-body min-h-svh bg-[#FBF3EF] text-[#2B2320] md:flex`}>
+    <div className={`font-body min-h-svh bg-[#FBF3EF] text-[#2B2320] md:flex`}>
       <DashboardNav
         user={{
           name: session.user.name,
