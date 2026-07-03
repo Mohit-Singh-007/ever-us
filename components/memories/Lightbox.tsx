@@ -19,7 +19,7 @@ type Memory = {
   uploadedBy: { name: string };
 };
 
-export function MemoryLightBox({
+export function Lightbox({
   memory,
   currentUserName,
   open,

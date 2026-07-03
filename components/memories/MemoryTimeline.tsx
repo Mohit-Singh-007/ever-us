@@ -5,7 +5,7 @@ import { format, isSameMonth } from "date-fns";
 import { MapPin } from "lucide-react";
 import { cldThumb } from "@/lib/cloudinary-transform";
 import { cn } from "@/lib/utils";
-import { MemoryLightBox } from "./MemoryLightBox";
+import { Lightbox } from "./Lightbox";
 
 type Memory = {
   id: string;
@@ -124,7 +124,7 @@ export function MemoryTimeline({
       </div>
 
       {activeMemory && (
-        <MemoryLightBox
+        <Lightbox
           memory={activeMemory}
           currentUserName={currentUserName}
           open={Boolean(activeMemory)}
