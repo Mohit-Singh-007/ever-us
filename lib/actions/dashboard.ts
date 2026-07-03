@@ -16,7 +16,7 @@ export async function getDashboardData(
       partnerTwo: { select: { id: true, name: true, image: true } },
     },
   });
-
+ 
   const [
     memoryCount,
     journalCount,
@@ -33,15 +33,22 @@ export async function getDashboardData(
       where: { coupleId },
       orderBy: { date: "desc" },
       take: 8,
-      select: { id: true, imageUrl: true, caption: true },
+      select: {
+        id: true,
+        imageUrl: true,
+        caption: true,
+        location: true,
+        date: true,
+        uploadedBy: { select: { name: true } },
+      },
     }),
     getTodaysQuestion(coupleId, userId),
   ]);
-
-  const partner =  getPartner(couple as NonNullable<CoupleWithPartners>, userId);
+ 
+  const partner = getPartner(couple as NonNullable<CoupleWithPartners>, userId);
   const me =
     couple.partnerOneId === userId ? couple.partnerOne : couple.partnerTwo;
-
+ 
   return {
     firstName: me.name.split(" ")[0],
     relationshipDurationLabel: formatRelationshipDuration(couple.createdAt),
@@ -60,7 +67,6 @@ export async function getDashboardData(
     partner,
   };
 }
-
 
 async function getTodaysQuestion(coupleId: string, userId: string) {
   const startOfToday = new Date();

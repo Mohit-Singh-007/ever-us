@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { format, isSameMonth } from "date-fns";
 import { MapPin } from "lucide-react";
-import { MemoryLightbox } from "./MemoryLightBox";
+import { MemoryLightbox } from "@/components/memories/MemoryLightBox";
+import { cn } from "@/lib/utils";
 
 type Memory = {
   id: string;
@@ -33,68 +34,93 @@ export function MemoryTimeline({
     }
   }
 
+  let runningIndex = 0;
+
   return (
-    <div className="flex flex-col gap-14">
-      {groups.map((group) => (
-        <section key={group.label}>
-          <div className="mb-5 flex items-center gap-4">
-            <h2 className="font-display text-lg italic text-[#2B2320]/80 md:text-xl">
-              {group.label}
-            </h2>
-            <div className="h-px flex-1 bg-[#2B2320]/10" />
-            <span className="font-mono text-[10px] uppercase tracking-wide text-[#2B2320]/35">
-              {group.items.length}{" "}
-              {group.items.length === 1 ? "photo" : "photos"}
-            </span>
-          </div>
+    <div className="relative">
+      {/* the spine — dashed thread running down the page, same motif as the landing hero */}
+      <div
+        className="absolute left-4 top-3 bottom-3 w-px md:left-1/2 md:-translate-x-1/2"
+        style={{
+          backgroundImage:
+            "repeating-linear-gradient(to bottom, #C4685A55 0, #C4685A55 4px, transparent 4px, transparent 12px)",
+        }}
+        aria-hidden
+      />
 
-          {/* CSS-columns masonry: each photo keeps its natural aspect ratio,
-              columns reflow automatically, and nothing can overlap or hide
-              behind another tile — unlike a manually spanned CSS grid. */}
-          <div className="columns-2 gap-3 sm:columns-3 md:columns-4">
-            {group.items.map((memory) => (
-              <button
-                key={memory.id}
-                type="button"
-                onClick={() => setActiveMemory(memory)}
-                className="group relative mb-3 block w-full overflow-hidden rounded-2xl bg-[#2B2320]/5 text-left shadow-sm ring-1 ring-[#2B2320]/5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg break-inside-avoid"
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={memory.imageUrl}
-                  alt={memory.caption ?? ""}
-                  loading="lazy"
-                  className="block h-auto w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-                />
+      <div className="flex flex-col gap-2">
+        {groups.map((group) => (
+          <div key={group.label} className="flex flex-col">
+            {/* month marker, sits centered on the spine at md+, aligned with cards on mobile */}
+            <div className="relative py-6">
+              <div className="pl-10 md:pl-0 md:flex md:justify-center">
+                <span className="font-display inline-block rounded-full border border-[#C4685A]/25 bg-[#FBF3EF] px-4 py-1.5 text-sm italic text-[#2B2320] shadow-sm">
+                  {group.label}
+                </span>
+              </div>
+            </div>
 
-                {/* always-visible date chip, top-left */}
-                <div className="absolute left-2 top-2 rounded-full bg-[#2B2320]/55 px-2 py-1 backdrop-blur-sm">
-                  <span className="text-[10px] font-medium text-white">
-                    {format(memory.date, "MMM d")}
-                  </span>
+            {group.items.map((memory) => {
+              const isLeft = runningIndex % 2 === 0;
+              runningIndex += 1;
+
+              return (
+                <div key={memory.id} className="relative py-4">
+                  {/* dot on the spine */}
+                  <span
+                    className="absolute left-4 top-8 z-10 h-3 w-3 -translate-x-1/2 rounded-full bg-[#C4685A] ring-4 ring-[#FBF3EF] md:left-1/2"
+                    aria-hidden
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => setActiveMemory(memory)}
+                    className={cn(
+                      "group ml-10 block w-[calc(100%-2.5rem)] text-left md:w-[calc(50%-2.5rem)]",
+                      isLeft ? "md:mr-auto md:pr-2" : "md:ml-auto md:pl-2",
+                    )}
+                  >
+                    <div
+                      className={cn(
+                        "overflow-hidden rounded-2xl border border-[#2B2320]/8 bg-white/70 shadow-sm transition-all duration-300 group-hover:-translate-y-0.5 group-hover:shadow-lg",
+                        "flex flex-col sm:flex-row",
+                        !isLeft && "sm:flex-row-reverse",
+                      )}
+                    >
+                      <div className="relative aspect-[4/3] w-full overflow-hidden sm:aspect-square sm:w-36 sm:shrink-0">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={memory.imageUrl}
+                          alt={memory.caption ?? ""}
+                          loading="lazy"
+                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.05]"
+                        />
+                      </div>
+
+                      <div className="flex flex-1 flex-col justify-center p-4">
+                        <p className="font-mono mb-1 text-[10px] uppercase tracking-wide text-[#8A9A7E]">
+                          {format(memory.date, "MMMM d, yyyy")}
+                        </p>
+                        {memory.caption && (
+                          <p className="line-clamp-2 text-sm leading-snug text-[#2B2320]">
+                            {memory.caption}
+                          </p>
+                        )}
+                        {memory.location && (
+                          <p className="mt-1.5 flex items-center gap-1 text-xs text-[#2B2320]/50">
+                            <MapPin className="h-3 w-3 shrink-0" />{" "}
+                            {memory.location}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </button>
                 </div>
-
-                {/* caption/location reveal on hover */}
-                {(memory.caption || memory.location) && (
-                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#2B2320]/85 via-[#2B2320]/30 to-transparent p-3 pt-8 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                    {memory.caption && (
-                      <p className="line-clamp-2 text-xs leading-snug text-white">
-                        {memory.caption}
-                      </p>
-                    )}
-                    {memory.location && (
-                      <p className="mt-1 flex items-center gap-1 text-[10px] text-white/75">
-                        <MapPin className="h-2.5 w-2.5 shrink-0" />{" "}
-                        {memory.location}
-                      </p>
-                    )}
-                  </div>
-                )}
-              </button>
-            ))}
+              );
+            })}
           </div>
-        </section>
-      ))}
+        ))}
+      </div>
 
       {activeMemory && (
         <MemoryLightbox

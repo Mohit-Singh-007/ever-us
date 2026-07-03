@@ -2,8 +2,9 @@ import Link from "next/link";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { getCoupleForUser } from "@/lib/actions/couple";
-import { getDashboardData } from "@/lib/actions/dashboard";
+import { getDashboardData } from "@/lib/actions/dashboard"; // implement: returns stats/memories/question for a couple
 import { ArrowRight, Heart, Image as ImageIcon } from "lucide-react";
+import { RecentMemoriesGrid } from "@/components/dashboard/RecentMemoryGrid";
 
 export default async function DashboardHomePage() {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -62,31 +63,10 @@ export default async function DashboardHomePage() {
             cta={{ href: "/memories", label: "Add a memory" }}
           />
         ) : (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-            {data.recentMemories.map((m) => (
-              <Link
-                key={m.id}
-                href="/memories"
-                className="group relative aspect-[4/5] overflow-hidden rounded-2xl bg-[#2B2320]/5 shadow-sm ring-1 ring-[#2B2320]/5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg"
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={m.imageUrl}
-                  alt={m.caption ?? ""}
-                  loading="lazy"
-                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
-                />
-
-                {m.caption && (
-                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#2B2320]/85 via-[#2B2320]/25 to-transparent p-3 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                    <p className="line-clamp-2 text-xs leading-snug text-white">
-                      {m.caption}
-                    </p>
-                  </div>
-                )}
-              </Link>
-            ))}
-          </div>
+          <RecentMemoriesGrid
+            memories={data.recentMemories}
+            currentUserName={session!.user.name}
+          />
         )}
       </section>
     </div>
