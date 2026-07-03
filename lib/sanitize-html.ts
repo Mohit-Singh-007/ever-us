@@ -1,4 +1,4 @@
-import DOMPurify from "isomorphic-dompurify";
+import sanitizeHtmlLib from "sanitize-html";
 
 /**
  * Tiptap outputs real HTML, so unlike the old markdown-lite approach we
@@ -8,13 +8,13 @@ import DOMPurify from "isomorphic-dompurify";
  * that might read this field directly in the future.
  */
 export function sanitizeJournalHtml(html: string): string {
-  return DOMPurify.sanitize(html, {
-    ALLOWED_TAGS: [
+  return sanitizeHtmlLib(html, {
+    allowedTags: [
       "p", "br", "strong", "em", "u", "s",
       "ul", "ol", "li",
       "h1", "h2", "h3",
       "blockquote", "code", "pre",
     ],
-    ALLOWED_ATTR: [],
+    allowedAttributes: {}, // matches your ALLOWED_ATTR: []
   });
 }
