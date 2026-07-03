@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { format, isSameMonth } from "date-fns";
 import { MapPin } from "lucide-react";
-import { MemoryLightbox } from "./memory-lightbox";
+import { MemoryLightbox } from "./MemoryLightBox";
 
 type Memory = {
   id: string;
@@ -59,7 +59,7 @@ export function MemoryTimeline({
                   alt={memory.caption ?? ""}
                   className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
-                <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-[#2B2320]/70 via-transparent to-transparent p-3 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                <div className="absolute inset-0 flex flex-col justify-end bg-linear-to-t from-[#2B2320]/70 via-transparent to-transparent p-3 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
                   {memory.caption && (
                     <p className="line-clamp-2 text-xs text-white">
                       {memory.caption}

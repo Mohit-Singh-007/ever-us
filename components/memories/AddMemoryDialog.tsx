@@ -24,9 +24,9 @@ import {
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 
-import { ImageUploadField } from "@/components/journal/image-upload-field";
 import { createMemory } from "@/lib/actions/memory";
 import { cn } from "@/lib/utils";
+import { ImageUploadField } from "../journal/ImageUploadField";
 
 export function AddMemoryDialog() {
   const router = useRouter();
